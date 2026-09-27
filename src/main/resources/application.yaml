@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: invento-core-service
+
+app:
+  datasource:
+    platform:
+      url: ${DB_URL}
+      username: ${DB_USERNAME}
+      password: ${DB_PASSWORD}
+      hikari:
+        pool-name: invento-platform-pool
+        maximum-pool-size: 10
+        minimum-idle: 2
+        connection-timeout: 30000
+        idle-timeout: 600000
+        max-lifetime: 1800000
+        keepalive-time: 60000
+
+    provisioning:
+      url: ${PROVISIONING_DB_URL}
+      username: ${PROVISIONING_DB_USERNAME}
+      password: ${PROVISIONING_DB_PASSWORD}
+      flyway:
+        enabled: ${PROVISIONING_FLYWAY_ENABLED:true}
