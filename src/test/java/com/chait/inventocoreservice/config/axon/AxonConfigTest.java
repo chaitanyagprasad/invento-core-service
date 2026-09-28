@@ -6,6 +6,7 @@ import org.axonframework.common.transaction.TransactionManager;
 import org.axonframework.eventhandling.tokenstore.TokenStore;
 import org.axonframework.eventhandling.tokenstore.jdbc.JdbcTokenStore;
 import org.axonframework.eventsourcing.eventstore.EmbeddedEventStore;
+import org.axonframework.eventsourcing.eventstore.EventStorageEngine;
 import org.axonframework.eventsourcing.eventstore.EventStore;
 import org.axonframework.eventsourcing.eventstore.jdbc.JdbcEventStorageEngine;
 import org.axonframework.queryhandling.QueryBus;
@@ -16,7 +17,13 @@ import org.axonframework.spring.messaging.unitofwork.SpringTransactionManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
+import org.testcontainers.utility.DockerImageName;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -37,13 +44,42 @@ import static org.assertj.core.api.Assertions.assertThat;
  * </ul>
  */
 @SpringBootTest
-@ActiveProfiles("local")
+@Testcontainers
 class AxonConfigTest {
+
+    @Container
+    static final PostgreSQLContainer POSTGRES =
+            new PostgreSQLContainer(DockerImageName.parse("postgres:latest"));
+
+    @DynamicPropertySource
+    static void datasourceProperties(DynamicPropertyRegistry registry) {
+        registry.add("app.datasource.provisioning.url", POSTGRES::getJdbcUrl);
+        registry.add("app.datasource.provisioning.username", POSTGRES::getUsername);
+        registry.add("app.datasource.provisioning.password", POSTGRES::getPassword);
+        registry.add("app.datasource.platform.url", AxonConfigTest::platformJdbcUrl);
+        registry.add("app.datasource.platform.username", POSTGRES::getUsername);
+        registry.add("app.datasource.platform.password", POSTGRES::getPassword);
+        registry.add("app.datasource.platform.hikari.pool-name",
+                () -> "invento-platform-test-pool");
+        registry.add("app.datasource.platform.hikari.maximum-pool-size", () -> 5);
+        registry.add("app.datasource.platform.hikari.minimum-idle", () -> 1);
+        registry.add("app.datasource.platform.hikari.connection-timeout", () -> 30_000);
+        registry.add("app.datasource.platform.hikari.idle-timeout", () -> 600_000);
+        registry.add("app.datasource.platform.hikari.max-lifetime", () -> 1_800_000);
+        registry.add("app.datasource.platform.hikari.keepalive-time", () -> 60_000);
+    }
+
+    private static String platformJdbcUrl() {
+        return "jdbc:postgresql://%s:%d/invento_platform"
+                .formatted(POSTGRES.getHost(), POSTGRES.getMappedPort(5432));
+    }
 
     @Autowired
     Serializer axonSerializer;
     @Autowired
     EventStore eventStore;
+    @Autowired
+    EventStorageEngine eventStorageEngine;
     @Autowired
     TokenStore tokenStore;
     @Autowired
@@ -98,8 +134,7 @@ class AxonConfigTest {
 
     @Test
     void eventStore_storageEngine_isJdbcBacked() {
-        EmbeddedEventStore embedded = (EmbeddedEventStore) eventStore;
-        assertThat(embedded.storageEngine())
+        assertThat(eventStorageEngine)
                 .isInstanceOf(JdbcEventStorageEngine.class);
     }
 
