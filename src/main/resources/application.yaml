@@ -2,6 +2,10 @@ spring:
   application:
     name: invento-core-service
 
+axon:
+  axonserver:
+    enabled: false
+
 app:
   datasource:
     platform:

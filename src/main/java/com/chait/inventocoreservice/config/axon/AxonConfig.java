@@ -70,6 +70,16 @@ public class AxonConfig {
                 .schema(EventSchema.builder()
                         .eventTable("domain_event_entry")
                         .snapshotTable("snapshot_event_entry")
+                        .globalIndexColumn("global_index")
+                        .aggregateIdentifierColumn("aggregate_identifier")
+                        .sequenceNumberColumn("sequence_number")
+                        .typeColumn("type")
+                        .eventIdentifierColumn("event_identifier")
+                        .metaDataColumn("meta_data")
+                        .payloadColumn("payload")
+                        .payloadRevisionColumn("payload_revision")
+                        .payloadTypeColumn("payload_type")
+                        .timestampColumn("time_stamp")
                         .build())
                 .transactionManager(axonTransactionManager)
                 .build();
@@ -89,7 +99,15 @@ public class AxonConfig {
         return JdbcTokenStore.builder()
                 .serializer(axonSerializer)
                 .connectionProvider(platformDataSource::getConnection)
-                .schema(TokenSchema.builder().build())
+                .schema(TokenSchema.builder()
+                        .setTokenTable("token_entry")
+                        .setProcessorNameColumn("processor_name")
+                        .setSegmentColumn("segment")
+                        .setTokenColumn("token")
+                        .setTokenTypeColumn("token_type")
+                        .setTimestampColumn("timestamp")
+                        .setOwnerColumn("owner")
+                        .build())
                 .build();
     }
 
