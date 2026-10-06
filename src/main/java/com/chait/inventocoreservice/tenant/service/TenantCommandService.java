@@ -6,6 +6,7 @@ import com.chait.inventocoreservice.tenant.command.CreateTenantCommand;
 import com.chait.inventocoreservice.tenant.command.DisableTenantCommand;
 import com.chait.inventocoreservice.tenant.command.SetTenantDbNameCommand;
 import com.chait.inventocoreservice.tenant.exception.TenantNotFoundException;
+import com.chait.inventocoreservice.tenant.projection.TenantView;
 import com.chait.inventocoreservice.tenant.query.TenantQueryHandler;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,13 +24,13 @@ public class TenantCommandService {
     private final CommandGateway commandGateway;
     private final TenantQueryHandler queryHandler;
 
-    public UUID createTenant(String tenantId, String displayName) {
+    public UUID createTenant(final String tenantId, final String displayName) {
         if (queryHandler.existsByTenantId(tenantId)) {
             throw new IllegalArgumentException(
                     "Tenant with tenantId [%s] already exists.".formatted(tenantId));
         }
 
-        UUID id = UUID.randomUUID();
+        final UUID id = UUID.randomUUID();
 
         log.info("Creating tenant [{}] with id [{}]", tenantId, id);
 
@@ -43,40 +44,45 @@ public class TenantCommandService {
         return id;
     }
 
-    public void activateTenant(UUID id) {
-        requireTenantExists(id);
+    public void activateTenant(final String tenantId) {
+        final TenantView tenant = this.getTenantByTenantId(tenantId);
 
-        log.info("Activating tenant [{}]", id);
+        log.info("Activating tenant [{}]", tenantId);
 
-        commandGateway.sendAndWait(new ActivateTenantCommand(id.toString()));
+        commandGateway.sendAndWait(new ActivateTenantCommand(tenant.getId().toString()));
 
-        log.info("Tenant [{}] activated successfully.", id);
+        log.info("Tenant [{}] activated successfully.", tenantId);
     }
 
-    public void disableTenant(UUID id) {
-        requireTenantExists(id);
+    public void disableTenant(final String tenantId) {
+        final TenantView tenant = this.getTenantByTenantId(tenantId);
 
-        log.info("Disabling tenant [{}]", id);
+        log.info("Disabling tenant [{}]", tenantId);
 
-        commandGateway.sendAndWait(new DisableTenantCommand(id.toString()));
+        commandGateway.sendAndWait(new DisableTenantCommand(tenant.getId().toString()));
 
-        log.info("Tenant [{}] disabled successfully.", id);
+        log.info("Tenant [{}] disabled successfully.", tenant);
     }
 
-    public void setTenantDbName(UUID id, String dbName) {
-        requireTenantExists(id);
+    public void setTenantDbName(final String tenantId, String dbName) {
+        final TenantView tenant = this.getTenantByTenantId(tenantId);
 
-        log.info("Setting db_name [{}] for tenant [{}]", dbName, id);
+        log.info("Setting db_name [{}] for tenant [{}]", dbName, tenantId);
 
         commandGateway.sendAndWait(new SetTenantDbNameCommand(
-                id.toString(), dbName));
+                tenant.getId().toString(), dbName));
 
-        log.info("Tenant [{}] db_name set to [{}] successfully.", id, dbName);
+        log.info("Tenant [{}] db_name set to [{}] successfully.", tenantId, dbName);
     }
 
-    private void requireTenantExists(UUID id) {
-        if (queryHandler.findById(id).isEmpty()) {
-            throw new TenantNotFoundException(id);
+    private void requireTenantExists(String tenantId) {
+        if(queryHandler.existsByTenantId(tenantId)) {
+            throw new TenantNotFoundException(tenantId);
         }
+    }
+
+    private TenantView getTenantByTenantId(final String tenantId) {
+        return queryHandler.findByTenantId(tenantId)
+                .orElseThrow(() -> new TenantNotFoundException(tenantId));
     }
 }

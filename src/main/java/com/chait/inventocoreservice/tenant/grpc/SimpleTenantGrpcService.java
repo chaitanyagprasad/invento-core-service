@@ -69,7 +69,7 @@ public class SimpleTenantGrpcService extends TenantServiceGrpc.TenantServiceImpl
         log.info("gRPC activateTenant — id=[{}]", request.getId());
 
         try {
-            commandService.activateTenant(UUID.fromString(request.getId()));
+            commandService.activateTenant(request.getId());
 
             responseObserver.onNext(ActivateTenantResponse.newBuilder().build());
             responseObserver.onCompleted();
@@ -102,7 +102,7 @@ public class SimpleTenantGrpcService extends TenantServiceGrpc.TenantServiceImpl
 
         try {
             commandService.setTenantDbName(
-                    UUID.fromString(request.getId()),
+                    request.getId(),
                     request.getDbName());
 
             responseObserver.onNext(SetTenantDbNameResponse.newBuilder().build());
@@ -134,7 +134,7 @@ public class SimpleTenantGrpcService extends TenantServiceGrpc.TenantServiceImpl
         log.info("gRPC disableTenant — id=[{}]", request.getId());
 
         try {
-            commandService.disableTenant(UUID.fromString(request.getId()));
+            commandService.disableTenant(request.getId());
 
             responseObserver.onNext(DisableTenantResponse.newBuilder().build());
             responseObserver.onCompleted();
