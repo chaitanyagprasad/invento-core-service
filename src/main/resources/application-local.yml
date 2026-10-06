@@ -1,6 +1,9 @@
 spring:
   application:
     name: invento-core-service
+  grpc:
+    server:
+      port: 9090
 
 management:
   tracing:
@@ -10,17 +13,17 @@ management:
     tracing:
       export:
         otlp:
-          endpoint: http://localhost:4318/v1/traces
+          endpoint: http://host.docker.internal:4318/v1/traces
   otlp:
     metrics:
       export:
-        url: http://localhost:4318/v1/metrics
+        url: http://host.docker.internal:4318/v1/metrics
         step: 10s
 
 app:
   datasource:
     platform:
-      url: jdbc:postgresql://localhost:5432/invento_platform
+      url: jdbc:postgresql://host.docker.internal:5432/invento_platform
       username: postgres
       password: postgres
       hikari:
@@ -33,6 +36,6 @@ app:
         keepalive-time: 60000
 
     provisioning:
-      url: jdbc:postgresql://localhost:5432/postgres
+      url: jdbc:postgresql://host.docker.internal:5432/postgres
       username: postgres
       password: postgres

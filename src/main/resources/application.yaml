@@ -1,6 +1,9 @@
 spring:
   application:
     name: invento-core-service
+  grpc:
+    server:
+      port: 9090
 
 axon:
   axonserver:
