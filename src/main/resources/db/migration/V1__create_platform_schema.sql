@@ -33,3 +33,19 @@ CREATE TYPE platform.tenant_status AS ENUM (
     'ACTIVE',        -- fully operational; logins accepted by the BFF
     'DISABLED'       -- suspended; BFF rejects with 403
 );
+
+-- -----------------------------------------------------------------------
+-- updated_at trigger
+-- Maintains updated_at automatically so the application layer never
+-- needs to set it explicitly. Defined in the platform schema so future
+-- tables can reuse the function with their own trigger declarations.
+-- -----------------------------------------------------------------------
+CREATE FUNCTION platform.set_updated_at()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$;
