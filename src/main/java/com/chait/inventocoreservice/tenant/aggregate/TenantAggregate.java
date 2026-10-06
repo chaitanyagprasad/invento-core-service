@@ -64,7 +64,12 @@ public class TenantAggregate {
      * {@code TenantCommandService}) — never generated here.
      */
     @CommandHandler
-    public TenantAggregate(CreateTenantCommand command) {
+    public TenantAggregate(final CreateTenantCommand command) {
+
+        if (command.displayName() == null || command.displayName().isBlank()) {
+            throw new IllegalArgumentException("displayName must not be blank");
+        }
+
         AggregateLifecycle.apply(new TenantCreatedEvent(
                 UUID.fromString(command.id()),
                 command.tenantId(),
@@ -78,7 +83,7 @@ public class TenantAggregate {
      * @throws InvalidTenantStateException if status is not {@code PROVISIONING}
      */
     @CommandHandler
-    public void handle(ActivateTenantCommand command) {
+    public void handle(final ActivateTenantCommand command) {
         requireStatus(TenantStatus.PROVISIONING);
         AggregateLifecycle.apply(new TenantActivatedEvent(
                 UUID.fromString(command.id())

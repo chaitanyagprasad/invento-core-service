@@ -107,8 +107,6 @@ CREATE INDEX idx_association_value_entry_key
 --
 -- Written exclusively by TenantProjection event handlers.
 -- Never written by the command side.
--- Shape mirrors tenant_registry intentionally — the registry is the
--- event store source of truth; this is the denormalized read projection.
 -- -----------------------------------------------------------------------
 CREATE TABLE platform.tenant_view (
                                       id           UUID                   PRIMARY KEY,
